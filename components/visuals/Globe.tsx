@@ -372,17 +372,6 @@ export const Globe = forwardRef<GlobeHandle, GlobeProps>(({
               <span className="text-[10px] text-[#E42737] font-black tracking-[0.5em] uppercase">GLOBE VIEW // {config.name}</span>
           </div>
        </div>
-
-       {/* TACTICAL MAP OVERLAY */}
-       <div className="absolute bottom-32 right-6 md:right-10 text-right pointer-events-none z-50 hidden md:block">
-          <div className="flex items-center gap-2 mb-1 justify-end">
-             <div className="text-[#E42737] text-xs font-bold tracking-[0.2em]">TACTICAL MAP</div>
-             <Crosshair size={14} className="text-[#E42737]" />
-          </div>
-          <div className="h-[1px] w-32 bg-[#E42737]/30 mb-2 ml-auto"></div>
-          <div className="text-slate-500 text-[10px] font-mono tracking-wider">SECTOR: {config.name} // GLOBE</div>
-          <div className="text-slate-500 text-[10px] font-mono tracking-wider">GRID: PLANETARY</div>
-       </div>
     </div>
   );
 });
