@@ -1,40 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
-import { Orbit, Info, Crosshair, Plus, Minus } from 'lucide-react';
+import { Orbit, Globe, Info, Crosshair, Plus, Minus } from 'lucide-react';
 import { CelestialBodyConfig } from '../../types/index.ts';
-
-// Custom icon for System Map: Tactical Planetary System
-const SystemMapIcon = ({ size = 20 }: { size?: number }) => (
-  <svg 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="1.5" 
-    strokeLinecap="round" 
-    strokeLinejoin="round"
-  >
-    {/* Orbits as dashed guides */}
-    <circle cx="12" cy="12" r="10" strokeDasharray="2 4" className="opacity-30" />
-    <circle cx="12" cy="12" r="6" strokeDasharray="1 3" className="opacity-50" />
-    
-    {/* Central Star */}
-    <circle cx="12" cy="12" r="2" fill="currentColor" />
-    
-    {/* Planet Nodes with connecting vector lines */}
-    <g className="opacity-80">
-      <line x1="12" y1="12" x2="21" y2="12" className="opacity-20" />
-      <circle cx="21" cy="12" r="1.8" fill="currentColor" />
-      
-      <line x1="12" y1="12" x2="12" y2="6" className="opacity-20" />
-      <circle cx="12" cy="6" r="1.2" fill="currentColor" />
-      
-      <line x1="12" y1="12" x2="6" y2="18" className="opacity-20" />
-      <circle cx="6" cy="18" r="1" fill="currentColor" />
-    </g>
-  </svg>
-);
 
 interface SystemNavProps {
   bodies: CelestialBodyConfig[];
@@ -155,10 +122,10 @@ export const SystemNav: React.FC<SystemNavProps> = ({
                   ${viewMode === 'ORBIT' 
                     ? 'bg-[#E42737] border-[#E42737] text-black shadow-[0_0_10px_rgba(228,39,55,0.4)]' 
                     : 'border-white/10 text-white/20 hover:text-white/50 hover:border-white/30'}`}
-                title="ORBIT VIEW"
+                title="GLOBE VIEW"
             >
-                <Orbit size={16} />
-                <span className="hidden md:inline text-[10px] font-black tracking-widest">ORBIT</span>
+                <Globe size={16} />
+                <span className="hidden md:inline text-[10px] font-black tracking-widest">GLOBE</span>
             </button>
             <button 
                 onClick={() => onViewModeChange('SYSTEM')}
@@ -168,7 +135,7 @@ export const SystemNav: React.FC<SystemNavProps> = ({
                     : 'border-white/10 text-white/20 hover:text-white/50 hover:border-white/30'}`}
                 title="SYSTEM MAP"
             >
-                <SystemMapIcon size={20} />
+                <Orbit size={16} />
                 <span className="hidden md:inline text-[10px] font-black tracking-widest">SYSTEM</span>
             </button>
          </div>

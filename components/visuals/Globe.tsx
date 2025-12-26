@@ -129,59 +129,59 @@ export const Globe = forwardRef<GlobeHandle, GlobeProps>(({
 
   const render = useCallback((time: number) => {
     const canvas = canvasRef.current; if (!canvas || dims.width === 0) return;
-    const ctx = canvas.getContext('2d'); if (!ctx) return;
+    const context = canvas.getContext('2d'); if (!context) return;
     const dpr = window.devicePixelRatio || 1;
     const { width, height } = dims;
     
     if (canvas.width !== Math.floor(width * dpr) || canvas.height !== Math.floor(height * dpr)) {
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
     
-    ctx.clearRect(0, 0, width, height);
+    context.clearRect(0, 0, width, height);
     if (Math.abs(targetScaleRef.current - scaleRef.current) > 0.1) scaleRef.current += (targetScaleRef.current - scaleRef.current) * 0.1;
     
-    const proj = d3.geoOrthographic()
+    const projection = d3.geoOrthographic()
       .scale(scaleRef.current)
       .translate([width / 2, height / 2])
       .rotate(rotationRef.current)
       .clipAngle(config.id === 'belt' ? null : 90);
       
-    const path = d3.geoPath(proj, ctx);
+    const path = d3.geoPath(projection, context);
     const center = [width / 2, height / 2];
 
-    ctx.fillStyle = '#121212'; ctx.fillRect(0, 0, width, height);
+    context.fillStyle = '#121212'; context.fillRect(0, 0, width, height);
     starfieldRef.current.forEach(s => {
         const x = (s.x - rotationRef.current[0] * 2) % width;
         const finalX = x < 0 ? x + width : x;
-        ctx.fillStyle = '#334155'; ctx.globalAlpha = s.opacity * 0.4; ctx.fillRect(finalX, s.y % height, 1.5, 1.5);
+        context.fillStyle = '#334155'; context.globalAlpha = s.opacity * 0.4; context.fillRect(finalX, s.y % height, 1.5, 1.5);
     });
-    ctx.globalAlpha = 1;
+    context.globalAlpha = 1;
 
     if (config.id === 'belt') {
         asteroidFieldRef.current.forEach(r => {
-            const c = proj([r.lng, r.lat]);
+            const c = projection([r.lng, r.lat]);
             if (c) {
                 const back = Math.abs(d3.geoRotation(rotationRef.current)([r.lng, r.lat])[0]) > 90;
-                ctx.fillStyle = r.color; ctx.globalAlpha = back ? r.opacity * 0.3 : r.opacity;
-                ctx.fillRect(center[0] + (c[0]-center[0])*r.alt, center[1] + (c[1]-center[1])*r.alt, r.size * scaleRef.current * 0.005, r.size * scaleRef.current * 0.005);
+                context.fillStyle = r.color; context.globalAlpha = back ? r.opacity * 0.3 : r.opacity;
+                context.fillRect(center[0] + (c[0]-center[0])*r.alt, center[1] + (c[1]-center[1])*r.alt, r.size * scaleRef.current * 0.005, r.size * scaleRef.current * 0.005);
             }
         });
     } else {
-        ctx.beginPath(); path({ type: 'Sphere' }); ctx.fillStyle = 'rgba(18, 18, 18, 0.95)'; ctx.fill();
-        if (config.id !== 'earth') { ctx.beginPath(); path({ type: 'Sphere' }); ctx.fillStyle = 'rgba(228, 39, 55, 0.15)'; ctx.fill(); }
+        context.beginPath(); path({ type: 'Sphere' }); context.fillStyle = 'rgba(18, 18, 18, 0.95)'; context.fill();
+        if (config.id !== 'earth') { context.beginPath(); path({ type: 'Sphere' }); context.fillStyle = 'rgba(228, 39, 55, 0.15)'; context.fill(); }
         
-        const grad = ctx.createRadialGradient(width/2, height/2, scaleRef.current*0.8, width/2, height/2, scaleRef.current*1.1);
+        const grad = context.createRadialGradient(width/2, height/2, scaleRef.current*0.8, width/2, height/2, scaleRef.current*1.1);
         grad.addColorStop(0, 'rgba(228, 39, 55, 0)'); grad.addColorStop(0.9, 'rgba(228, 39, 55, 0.05)'); grad.addColorStop(1, 'rgba(228, 39, 55, 0)');
-        ctx.fillStyle = grad; ctx.beginPath(); path({ type: 'Sphere' }); ctx.fill();
+        context.fillStyle = grad; context.beginPath(); path({ type: 'Sphere' }); context.fill();
 
         const graticule = d3.geoGraticule().step([15, 15]);
-        ctx.beginPath(); path(graticule()); 
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)'; ctx.lineWidth = 0.5; ctx.stroke();
+        context.beginPath(); path(graticule()); 
+        context.strokeStyle = 'rgba(255, 255, 255, 0.04)'; context.lineWidth = 0.5; context.stroke();
 
         if (config.id === 'earth' && landDataRef.current) {
-            ctx.beginPath(); path(landDataRef.current); ctx.fillStyle = 'rgba(228, 39, 55, 0.15)'; ctx.fill();
+            context.beginPath(); path(landDataRef.current); context.fillStyle = 'rgba(228, 39, 55, 0.15)'; context.fill();
         }
     }
 
@@ -190,7 +190,7 @@ export const Globe = forwardRef<GlobeHandle, GlobeProps>(({
 
     config.data.cities.forEach(city => {
         let x, y, isVis = false;
-        const c = proj([city.lng, city.lat]);
+        const c = projection([city.lng, city.lat]);
         if (config.id === 'belt' && c) {
             x = center[0] + (c[0]-center[0])*2.2; y = center[1] + (c[1]-center[1])*2.2; isVis = true;
         } else if (c) {
@@ -204,24 +204,24 @@ export const Globe = forwardRef<GlobeHandle, GlobeProps>(({
             const isH = city.name === hoveredItem?.name;
             const isS = selectedCity?.name === city.name;
             
-            ctx.beginPath();
-            ctx.arc(x, y, (isH || isS ? 6 : 4) + pulsePhase * 8, 0, Math.PI * 2);
-            ctx.strokeStyle = col; ctx.globalAlpha = 0.4 * (1 - pulsePhase); ctx.lineWidth = 1; ctx.stroke();
-            ctx.globalAlpha = 1;
+            context.beginPath();
+            context.arc(x, y, (isH || isS ? 6 : 4) + pulsePhase * 8, 0, Math.PI * 2);
+            context.strokeStyle = col; context.globalAlpha = 0.4 * (1 - pulsePhase); context.lineWidth = 1; context.stroke();
+            context.globalAlpha = 1;
 
-            ctx.beginPath(); ctx.arc(x, y, isH || isS ? 4 : 2.5, 0, 2*Math.PI); ctx.fillStyle = isH || isS ? '#FFF' : col; ctx.fill();
+            context.beginPath(); context.arc(x, y, isH || isS ? 4 : 2.5, 0, 2*Math.PI); context.fillStyle = isH || isS ? '#FFF' : col; context.fill();
             
             if (isS) {
-                const b = 12; ctx.strokeStyle = '#E42737'; ctx.lineWidth = 1.5; ctx.beginPath();
-                ctx.moveTo(x-b, y-b+4); ctx.lineTo(x-b, y-b); ctx.lineTo(x-b+4, y-b);
-                ctx.moveTo(x+b-4, y-b); ctx.lineTo(x+b, y-b); ctx.lineTo(x+b, y-b+4);
-                ctx.moveTo(x-b, y+b-4); ctx.lineTo(x-b, y+b); ctx.lineTo(x-b+4, y+b);
-                ctx.moveTo(x+b-4, y+b); ctx.lineTo(x+b, y+b); ctx.lineTo(x+b, y+b-4);
-                ctx.stroke();
+                const b = 12; context.strokeStyle = '#E42737'; context.lineWidth = 1.5; context.beginPath();
+                context.moveTo(x-b, y-b+4); context.lineTo(x-b, y-b); context.lineTo(x-b+4, y-b);
+                context.moveTo(x+b-4, y-b); context.lineTo(x+b, y-b); context.lineTo(x+b, y-b+4);
+                context.moveTo(x-b, y+b-4); context.lineTo(x-b, y+b); context.lineTo(x-b+4, y+b);
+                context.moveTo(x+b-4, y+b); context.lineTo(x+b, y+b); context.lineTo(x+b, y+b-4);
+                context.stroke();
             }
 
             if (!isH && !isS) { 
-                ctx.font = `9px ${MONO_STACK}`; ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; ctx.textAlign = "center"; ctx.fillText(city.name, x, y + 12); 
+                context.font = `9px ${MONO_STACK}`; context.fillStyle = 'rgba(255, 255, 255, 0.4)'; context.textAlign = "center"; context.fillText(city.name, x, y + 12); 
             }
         }
     });
@@ -229,17 +229,17 @@ export const Globe = forwardRef<GlobeHandle, GlobeProps>(({
     visible.forEach(({city, x, y}) => {
         const isHovered = hoveredItem?.name === city.name;
         if (isHovered || selectedCity?.name === city.name) {
-            ctx.font = `bold 12px ${MONO_STACK}`;
-            const bw = ctx.measureText(city.name).width + 24; const bh = 28;
+            context.font = `bold 12px ${MONO_STACK}`;
+            const bw = context.measureText(city.name).width + 24; const bh = 28;
             if (!labelPosRef.current.has(city.name)) labelPosRef.current.set(city.name, { x: x-bw/2, y: y+25 });
             const cur = labelPosRef.current.get(city.name)!; cur.x += (x-bw/2 - cur.x)*0.2; cur.y += (y+25 - cur.y)*0.2;
-            ctx.beginPath(); ctx.strokeStyle = '#FFF'; ctx.lineWidth = 1; ctx.moveTo(x, y+5); ctx.lineTo(cur.x+bw/2, cur.y); ctx.stroke();
-            ctx.fillStyle = 'rgba(10,10,10,0.95)'; ctx.beginPath();
-            ctx.moveTo(cur.x, cur.y); ctx.lineTo(cur.x+bw, cur.y); ctx.lineTo(cur.x+bw, cur.y+bh-4); ctx.lineTo(cur.x+bw-4, cur.y+bh); ctx.lineTo(cur.x+4, cur.y+bh); ctx.lineTo(cur.x, cur.y+bh-4);
-            ctx.closePath(); ctx.fill(); ctx.strokeStyle = '#E42737'; ctx.stroke();
-            ctx.fillStyle = '#FFF'; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-            ctx.fillText(city.name, cur.x+bw/2, cur.y+bh/2-5);
-            ctx.font = `8px ${MONO_STACK}`; ctx.fillStyle = '#E42737'; ctx.fillText(`${city.lat.toFixed(1)} // ${city.lng.toFixed(1)}`, cur.x+bw/2, cur.y+bh/2+7);
+            context.beginPath(); context.strokeStyle = '#FFF'; context.lineWidth = 1; context.moveTo(x, y+5); context.lineTo(cur.x+bw/2, cur.y); context.stroke();
+            context.fillStyle = 'rgba(10,10,10,0.95)'; context.beginPath();
+            context.moveTo(cur.x, cur.y); context.lineTo(cur.x+bw, cur.y); context.lineTo(cur.x+bw, cur.y+bh-4); context.lineTo(cur.x+bw-4, cur.y+bh); context.lineTo(cur.x+4, cur.y+bh); context.lineTo(cur.x, cur.y+bh-4);
+            context.closePath(); context.fill(); context.strokeStyle = '#E42737'; context.stroke();
+            context.fillStyle = '#FFF'; context.textAlign = "center"; context.textBaseline = "middle";
+            context.fillText(city.name, cur.x+bw/2, cur.y+bh/2-5);
+            context.font = `8px ${MONO_STACK}`; context.fillStyle = '#E42737'; context.fillText(`${city.lat.toFixed(1)} // ${city.lng.toFixed(1)}`, cur.x+bw/2, cur.y+bh/2+7);
         }
     });
   }, [dims, config, hoveredItem, selectedCity]);
@@ -369,8 +369,19 @@ export const Globe = forwardRef<GlobeHandle, GlobeProps>(({
        <div className="absolute top-10 left-6 md:left-10 pointer-events-none z-50 font-mono flex flex-col items-start">
           <div className="flex items-center gap-2 opacity-80">
               <Crosshair size={12} className="text-[#E42737] animate-pulse" />
-              <span className="text-[10px] text-[#E42737] font-black tracking-[0.5em] uppercase">SYSTEM.HUD // {config.name}</span>
+              <span className="text-[10px] text-[#E42737] font-black tracking-[0.5em] uppercase">GLOBE VIEW // {config.name}</span>
           </div>
+       </div>
+
+       {/* TACTICAL MAP OVERLAY */}
+       <div className="absolute bottom-32 right-6 md:right-10 text-right pointer-events-none z-50 hidden md:block">
+          <div className="flex items-center gap-2 mb-1 justify-end">
+             <div className="text-[#E42737] text-xs font-bold tracking-[0.2em]">TACTICAL MAP</div>
+             <Crosshair size={14} className="text-[#E42737]" />
+          </div>
+          <div className="h-[1px] w-32 bg-[#E42737]/30 mb-2 ml-auto"></div>
+          <div className="text-slate-500 text-[10px] font-mono tracking-wider">SECTOR: {config.name} // GLOBE</div>
+          <div className="text-slate-500 text-[10px] font-mono tracking-wider">GRID: PLANETARY</div>
        </div>
     </div>
   );
